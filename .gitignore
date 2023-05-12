@@ -1,0 +1,4 @@
+wails-tools/build/bin
+wails-tools/node_modules
+wails-tools/frontend/dist
+wails-tools/frontend/node_nodules
