@@ -2,10 +2,7 @@
 
 ## About
 
-This is the official Wails Vue template.
-
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+这是一个用于将Jpeg图片拼接转换为PDF文件保存的工具
 
 ## Live Development
 
