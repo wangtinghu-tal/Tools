@@ -9,7 +9,7 @@
               网络检测工具
             </h1>
             <p v-show="!filePath" class="mb-5 text-gray-400 select-none">
-              请选择目标文件，程序会根据配置处理相应字符
+              请在右侧配置中添加网络检测依赖配置选项，然后点击按钮开始进行网络状态检测
             </p>
           </div>
           <div class="progress-area" v-show="state !== STATE_INIT">
@@ -33,7 +33,6 @@
                 <div v-else class="stat-value mt-2 text-center">
                   <span class="stat-desc text-2xl">等待处理</span>
                 </div>
-                <div class="stat-desc mt-2">{{ filePath }}</div>
                 <div
                   v-show="state === STATE_DONE"
                   class="stat-desc truncate mt-2"
@@ -44,19 +43,19 @@
                   v-show="state === STATE_DONE"
                   class="stat-desc truncate mt-2"
                 >
-                  网络下行速度：{{ download }}
+                  网络下行速度：{{ download }} Mb/s
                 </div>
                 <div
                   v-show="state === STATE_DONE"
                   class="stat-desc truncate mt-2"
                 >
-                  网络延迟：{{ delay }}ms
+                  网络延迟：{{ delay }} ms
                 </div>
                 <div
                   v-show="state === STATE_DONE"
                   class="stat-desc truncate mt-2"
                 >
-                  网络丢包率：{{ loss }}%
+                  网络丢包率：{{ loss }} %
                 </div>
               </div>
             </div>
@@ -117,7 +116,7 @@ const lineNum = ref(0);
 const download = ref(0); // 下行速度
 const delay = ref(0); // 网络延迟
 const loss = ref(0); // 丢包率
-const dnsRes = ref([""]) // DNS解析结果
+const dnsRes = ref("") // DNS解析结果
 
 const handleClickButton = () => {
   switch (state.value) {
@@ -130,6 +129,9 @@ const handleClickButton = () => {
       newFilePath.value = "";
       lineNum.value = 0;
       download.value = 0;
+      loss.value = 0;
+      delay.value = 0;
+      dnsRes.value = ""
       break;
   }
 };
@@ -144,14 +146,14 @@ const test = async () => {
   if (downloadSpeed > 0) {
     download.value = downloadSpeed;
   }
-  if (late[0] > 0) {
+  if (late !== undefined && late != null && late.length > 0 && late[0] > 0) {
     loss.value = late[0];
   }
-  if (late[1] > 0) {
+  if (late !== undefined && late != null && late.length > 1 && late[1] > 0) {
     delay.value = late[1];
   }
-  if (list) {
-    dbsRes.value = list;
+  if(typeof list !== 'undefined' && list != null && list !== '') {
+    dnsRes.value = list;
   }
 };
 

@@ -16,6 +16,7 @@ const (
 	count                = 10               // ping次数
 	downloadTestDuration = 10 * time.Second // 下载测试时长
 	testSpeedURL         = "https://www.sohu.com"
+	testNetworkHost      = "www.sohu.com"
 	testSpeedTimes       = 50 // 下载测试次数
 )
 
@@ -75,8 +76,7 @@ func (a *App) CheckSpeed() (downloadSpeed float64) {
 // 检测网络延迟和丢包率
 func (a *App) CheckLatency() (late []float64) {
 	if OPT.TestHost == "" {
-		fmt.Println("未设置测试域名")
-		return []float64{-1.0, -1.0}
+		OPT.TestHost = testNetworkHost
 	}
 	pingClient, err := ping.NewPinger(OPT.TestHost)
 	if err != nil {
@@ -87,7 +87,7 @@ func (a *App) CheckLatency() (late []float64) {
 	pingClient.Count = count
 	pingClient.Interval = time.Millisecond * 100
 	pingClient.Timeout = time.Second * 5
-	//pingClient.SetPrivileged(true)
+	pingClient.SetPrivileged(true)
 	err = pingClient.Run()
 	if err != nil {
 		fmt.Printf("ping失败: %s\n", err)
@@ -97,17 +97,20 @@ func (a *App) CheckLatency() (late []float64) {
 	stats := pingClient.Statistics()
 	fmt.Printf("包数：%d 发送：%d 接收：%d 丢失率：%.2f%% 平均延迟：%s \n", stats.PacketsSent, stats.PacketsRecv, stats.PacketsSent-stats.PacketsRecv, stats.PacketLoss, stats.AvgRtt.String())
 
-	return []float64{Decimal(stats.PacketLoss), Decimal(float64(stats.AvgRtt))}
+	return []float64{Decimal(stats.PacketLoss), Decimal(float64(stats.AvgRtt.Milliseconds()))}
 }
 
 // 解析DNS
 func (a *App) CheckDNS() (ips []string) {
-
-	ips, err := net.LookupHost(OPT.TestDNSHost)
+	if OPT.TestDNSHost == "" {
+		OPT.TestDNSHost = "www.baidu.com"
+	}
+	ip, err := net.ResolveIPAddr("ip", OPT.TestDNSHost)
 	if err != nil {
 		fmt.Println("无法解析主机:", err)
 		return nil
 	}
+	ips = append(ips, ip.String())
 	fmt.Printf("dns res is :%v\n", ips)
 	return ips
 }

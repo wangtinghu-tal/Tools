@@ -60,9 +60,8 @@ import { ref, reactive } from "vue";
 import { Quit, GetOptions, SetOptions, LogInfo } from "../../wailsjs";
 
 const config = reactive({
-  pdfHeight: 768,
-  pdfWidth: 1024,
-  pdfExportPath: ""
+    testHost: "www.sohu.com",
+    testDNSHost: "www.baidu.com",
 });
 const showOptionsPanel = ref(false);
 

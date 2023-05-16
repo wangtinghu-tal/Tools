@@ -2,7 +2,7 @@
 
 ## About
 
-这是一个用于将Jpeg图片拼接转换为PDF文件保存的工具
+这是一个用于检测设备网络状态和DNS解析能力的工具
 
 ## Live Development
 
