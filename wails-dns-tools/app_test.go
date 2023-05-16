@@ -7,28 +7,18 @@ import (
 
 func TestApp_CheckSpeed(t *testing.T) {
 	a := NewApp()
-	ds, err := a.CheckSpeed()
-	if err != nil {
-		return
-	}
-	t.Logf("download speed: %s", ds)
+	ds := a.CheckSpeed()
+	t.Logf("download speed: %.2fMb/s", ds)
 }
 
 func TestApp_CheckDNS(t *testing.T) {
 	a := NewApp()
-	res, err := a.CheckDNS()
-	if err != nil {
-		return
-	}
+	res:= a.CheckDNS()
 	t.Logf(fmt.Sprintf("res: %v", res))
 }
 
 func TestApp_CheckLatency(t *testing.T) {
 	a := NewApp()
-	loss, delay, err := a.CheckLatency()
-	if err != nil {
-		t.Error("err: ", err)
-		return
-	}
-	t.Logf("loss: %s, delay: %s", loss, delay)
+	res := a.CheckLatency()
+	t.Logf("loss: %.2f, delay: %.2f", res[0], res[1])
 }

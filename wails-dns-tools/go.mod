@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/go-ping/ping v1.1.0
-	github.com/tatsushid/go-fastping v0.0.0-20160109021039-d7bb493dee3e
 	github.com/valyala/fasthttp v1.47.0
 	github.com/wailsapp/wails/v2 v2.4.1
 )

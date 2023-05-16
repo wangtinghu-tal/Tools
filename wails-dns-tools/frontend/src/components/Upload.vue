@@ -6,7 +6,7 @@
         <div class="file-info-area mt-4 h-56">
           <div v-show="state === STATE_INIT" class="pt-4">
             <h1 class="mb-5 text-5xl font-bold text-slate-900 select-none">
-              数据过滤工具
+              网络检测工具
             </h1>
             <p v-show="!filePath" class="mb-5 text-gray-400 select-none">
               请选择目标文件，程序会根据配置处理相应字符
@@ -38,13 +38,25 @@
                   v-show="state === STATE_DONE"
                   class="stat-desc truncate mt-2"
                 >
-                  新文件：{{ newFilePath }}
+                  DNS解析列表：{{ dnsRes }}
                 </div>
                 <div
                   v-show="state === STATE_DONE"
                   class="stat-desc truncate mt-2"
                 >
-                  耗时：{{ elapsedTime }}
+                  网络下行速度：{{ download }}
+                </div>
+                <div
+                  v-show="state === STATE_DONE"
+                  class="stat-desc truncate mt-2"
+                >
+                  网络延迟：{{ delay }}ms
+                </div>
+                <div
+                  v-show="state === STATE_DONE"
+                  class="stat-desc truncate mt-2"
+                >
+                  网络丢包率：{{ loss }}%
                 </div>
               </div>
             </div>
@@ -54,7 +66,6 @@
           class="select-area relative transition duration-500 select-none cursor-pointer mx-auto mt-1"
           :class="{
             'state-init': state === STATE_INIT,
-            'state-ready': state === STATE_READY,
             'state-wait': state === STATE_WAIT,
             'state-done': state === STATE_DONE,
           }"
@@ -75,9 +86,6 @@
               <span>{{ buttonText }}</span>
             </div>
           </div>
-          <div class="reupload-area absolute" @click.stop="handleSelectFile">
-            <div class="button text-center absolute inset-0">重新选择</div>
-          </div>
         </div>
       </div>
     </div>
@@ -88,61 +96,62 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
 import {
-  SelectFile,
-  HandleImageToPDF,
+  CheckSpeed,
+  CheckLatency,
+  CheckDNS,
   EventsOn,
   LogInfo,
 } from "../../wailsjs";
 
-// 状态 1 等待选择  2 已选择文件 3 处理中 4 已处理
+// 状态 1 等待检测  2 处理中 3 检测完毕
 const STATE_INIT = 1;
-const STATE_READY = 2;
-const STATE_WAIT = 3;
-const STATE_DONE = 4;
+const STATE_WAIT = 2;
+const STATE_DONE = 3;
 const state = ref(STATE_INIT);
 
-const buttonText = ref("选择文件");
+const buttonText = ref("开始检测");
 const filePath = ref([""]);
 const filename = ref("");
 const newFilePath = ref("");
 const lineNum = ref(0);
-const elapsedTime = ref(0);
-
-const handleSelectFile = async () => {
-  const path = await SelectFile();
-  LogInfo(`选择的文件路径为：${path}`);
-  if (path) {
-    state.value = STATE_READY;
-    filePath.value = path;
-  }
-};
+const download = ref(0); // 下行速度
+const delay = ref(0); // 网络延迟
+const loss = ref(0); // 丢包率
+const dnsRes = ref([""]) // DNS解析结果
 
 const handleClickButton = () => {
   switch (state.value) {
     case STATE_INIT:
-      handleSelectFile();
-      break;
-    case STATE_READY:
-      handleFile(filePath.value);
+      test();
       break;
     case STATE_DONE:
       state.value = STATE_INIT;
       filePath.value = "";
       newFilePath.value = "";
       lineNum.value = 0;
-      elapsedTime.value = 0;
-      handleSelectFile();
+      download.value = 0;
       break;
   }
 };
 
-const handleFile = async (path) => {
+const test = async () => {
   state.value = STATE_WAIT;
-  const time = await HandleImageToPDF(path);
+  const downloadSpeed = await CheckSpeed();
+  const late = await CheckLatency();
+  const list = await CheckDNS();
+  LogInfo(`处理结果：${list}`);
   state.value = STATE_DONE;
-  LogInfo(`处理结果：${time}`);
-  if (time) {
-    elapsedTime.value = time;
+  if (downloadSpeed > 0) {
+    download.value = downloadSpeed;
+  }
+  if (late[0] > 0) {
+    loss.value = late[0];
+  }
+  if (late[1] > 0) {
+    delay.value = late[1];
+  }
+  if (list) {
+    dbsRes.value = list;
   }
 };
 
@@ -153,11 +162,10 @@ const onFilterChange = () => {
 };
 
 watch(state, (val) => {
-  if (val === STATE_INIT) buttonText.value = "选择文件";
-  else if (val === STATE_READY) buttonText.value = "处理文件";
-  else if (val === STATE_WAIT) buttonText.value = "处理中...";
+  if (val === STATE_INIT) buttonText.value = "开始检测";
+  else if (val === STATE_WAIT) buttonText.value = "检测中...";
   else if (val === STATE_DONE) {
-    buttonText.value = "处理完成";
+    buttonText.value = "检测完成";
   }
 });
 
@@ -190,18 +198,6 @@ onMounted(() => {
         display: block;
       }
       .ico-exist,
-      .ico-wait,
-      .ico-success {
-        display: none;
-      }
-    }
-    &.state-ready {
-      width: 326px;
-      .ico-exist,
-      .reupload-area {
-        display: block;
-      }
-      .ico-add,
       .ico-wait,
       .ico-success {
         display: none;

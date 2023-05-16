@@ -6,7 +6,7 @@
         <div class="file-info-area mt-4 h-56">
           <div v-show="state === STATE_INIT" class="pt-4">
             <h1 class="mb-5 text-5xl font-bold text-slate-900 select-none">
-              数据过滤工具
+              图片拼接PDF工具
             </h1>
             <p v-show="!filePath" class="mb-5 text-gray-400 select-none">
               请选择目标文件，程序会根据配置处理相应字符

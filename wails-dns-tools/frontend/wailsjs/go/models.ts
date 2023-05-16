@@ -1,9 +1,8 @@
 export namespace main {
 	
 	export class Options {
-	    pdfHeight: string;
-	    pdfWidth: string;
-	    pdfExportPath: string;
+	    testHost: string;
+	    testDNSHost: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Options(source);
@@ -11,9 +10,8 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.pdfHeight = source["pdfHeight"];
-	        this.pdfWidth = source["pdfWidth"];
-	        this.pdfExportPath = source["pdfExportPath"];
+	        this.testHost = source["testHost"];
+	        this.testDNSHost = source["testDNSHost"];
 	    }
 	}
 

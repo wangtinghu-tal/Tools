@@ -20,35 +20,29 @@
     data-wails-no-drag
   >
     <div class="form-control">
-      <div class="divider">导出PDF设置</div>
+      <div class="divider">网络检测设置</div>
       <div
         class="w-full px-8 py-2 pb-4 rounded-xl hover:bg-slate-50"
         v = config
       >
         <label class="label">
-          <span class="label-text">PDF页面高度</span>
+          <span class="label-text">用于网络状态检测域名</span>
         </label>
         <input
-          type="text" Height
-          placeholder="height"
-          v-model="config.pdfHeight"
+          type="text" Tes-Host
+          placeholder="用来检测网络状态的域名，默认www.sohu.com"
+          v-model="config.testHost"
           class="input input-bordered w-full"
         />
         <label class="label">
-          <span class="label-text">PDF页面宽度</span>
+          <span class="label-text">测试dns解析目标域名</span>
         </label>
         <input
-          type="text" Width
-          placeholder="width"
-          v-model="config.pdfWidth"
+          type="text" Test-DNS-Host
+          placeholder="需要测试dns解析的域名"
+          v-model="config.testDNSHost"
           class="input input-bordered w-full"
         />
-        <label class="label">
-          <span class="label-text">PDF保存路径</span>
-        </label>
-        <div>当前选择路径：{{config.pdfExportPath}}</div>
-        <button class="btn btn-wide btn-outline mx-auto mt-8 confirm"
-                @click="selectSave">选择路径</button>
 
         </div>
       </div>
@@ -63,7 +57,7 @@
 
 <script setup>
 import { ref, reactive } from "vue";
-import { Quit, GetOptions, SelectSavePath, SetOptions, LogInfo } from "../../wailsjs";
+import { Quit, GetOptions, SetOptions, LogInfo } from "../../wailsjs";
 
 const config = reactive({
   pdfHeight: 768,
@@ -78,32 +72,22 @@ const handleOptions = async () => {
   const res = await GetOptions();
   LogInfo(`获取到的配置：${JSON.stringify(res)}`);
   console.log("获取到的配置：", res);
-  config.pdfHeight = res.pdfHeight;
-  config.pdfWidth = res.pdfWidth;
-  config.pdfExportPath = res.pdfExportPath;
+  config.testHost = res.testHost;
+  config.testDNSHost = res.testDNSHost;
   showOptionsPanel.value = true;
-};
-
-const selectSave = async () => {
-  const res = await SelectSavePath();
-  LogInfo(`选择的路径：${JSON.stringify(res)}`);
-  console.log("选择的路径：", res);
-  config.pdfExportPath = res;
 };
 
 const confirm = () => {
   showOptionsPanel.value = false;
   const data = JSON.stringify({
-    pdfHeight: config.pdfHeight,
-    pdfWidth: config.pdfWidth,
-    pdfExportPath: config.pdfExportPath
+    testHost: config.testHost,
+    testDNSHost: config.testDNSHost
   });
   LogInfo(`存储的配置：${JSON.stringify(data)}`);
   console.log("config", data);
   SetOptions({
-    pdfHeight: config.pdfHeight,
-    pdfWidth: config.pdfWidth,
-    pdfExportPath: config.pdfExportPath,
+    testHost: config.testHost,
+    testDNSHost: config.testDNSHost,
   });
 };
 </script>

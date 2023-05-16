@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/go-ping/ping"
 	"github.com/valyala/fasthttp"
@@ -42,7 +41,7 @@ func (a *App) Greet(name string) string {
 }
 
 // 检测网络上下行速率
-func (a *App) CheckSpeed() (downloadSpeed string, err error) {
+func (a *App) CheckSpeed() (downloadSpeed float64) {
 	url := testSpeedURL
 	duration := downloadTestDuration
 	totalSize := 0
@@ -55,11 +54,11 @@ func (a *App) CheckSpeed() (downloadSpeed string, err error) {
 		resp := fasthttp.AcquireResponse()
 
 		startTime := time.Now()
-		err = fasthttp.DoTimeout(req, resp, duration)
+		err := fasthttp.DoTimeout(req, resp, duration)
 
 		if err != nil {
 			fmt.Println("无法进行网速测试:", err)
-			return "", errors.New("无法进行网速测试")
+			return -1.0
 		}
 
 		endTime := time.Now()
@@ -68,15 +67,16 @@ func (a *App) CheckSpeed() (downloadSpeed string, err error) {
 		totalDuration += endTime.Sub(startTime).Seconds()
 	}
 
-	downloadSpeed = fmt.Sprintf("%.2f Mb/s", float64(totalSize)/totalDuration/1024/1024)
+	downloadSpeed = Decimal(float64(totalSize) / totalDuration / 1024 / 1024)
 
 	return
 }
 
 // 检测网络延迟和丢包率
-func (a *App) CheckLatency() (loss string, delay string, err error) {
+func (a *App) CheckLatency() (late []float64) {
 	if OPT.TestHost == "" {
-		return "", "", fmt.Errorf("未设置测试域名")
+		fmt.Println("未设置测试域名")
+		return []float64{-1.0, -1.0}
 	}
 	pingClient, err := ping.NewPinger(OPT.TestHost)
 	if err != nil {
@@ -87,29 +87,29 @@ func (a *App) CheckLatency() (loss string, delay string, err error) {
 	pingClient.Count = count
 	pingClient.Interval = time.Millisecond * 100
 	pingClient.Timeout = time.Second * 5
-	pingClient.SetPrivileged(true)
+	//pingClient.SetPrivileged(true)
 	err = pingClient.Run()
 	if err != nil {
-		errName := fmt.Sprintf("ping失败: %s", err)
-		return "", "", errors.New(errName)
+		fmt.Printf("ping失败: %s\n", err)
+		return []float64{-1.0, -1.0}
 	}
 
 	stats := pingClient.Statistics()
-	//fmt.Printf("包数：%d 发送：%d 接收：%d 丢失率：%.2f%% 平均延迟：%s \n", stats.PacketsSent, stats.PacketsRecv, stats.PacketsSent-stats.PacketsRecv, stats.PacketLoss, stats.AvgRtt.String())
+	fmt.Printf("包数：%d 发送：%d 接收：%d 丢失率：%.2f%% 平均延迟：%s \n", stats.PacketsSent, stats.PacketsRecv, stats.PacketsSent-stats.PacketsRecv, stats.PacketLoss, stats.AvgRtt.String())
 
-	return fmt.Sprintf("%.2f%%", stats.PacketLoss), fmt.Sprintf("%s", stats.AvgRtt.String()), nil
+	return []float64{Decimal(stats.PacketLoss), Decimal(float64(stats.AvgRtt))}
 }
 
 // 解析DNS
-func (a *App) CheckDNS() (ips []string, err error) {
-	host := "www.baidu.com"
+func (a *App) CheckDNS() (ips []string) {
 
-	ips, err = net.LookupHost(host)
+	ips, err := net.LookupHost(OPT.TestDNSHost)
 	if err != nil {
 		fmt.Println("无法解析主机:", err)
-		return nil, errors.New("无法解析主机")
+		return nil
 	}
-	return
+	fmt.Printf("dns res is :%v\n", ips)
+	return ips
 }
 
 // GetOptions 获取配置文件JSON
@@ -122,8 +122,8 @@ func (a *App) SetOptions(val Options) {
 	OPT.SetData(&val)
 }
 
-// string to float64
-func s2f(s string) float64 {
-	f, _ := strconv.ParseFloat(s, 64)
-	return f
+// Decimal float64保留2位小数
+func Decimal(value float64) float64 {
+	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
+	return value
 }
