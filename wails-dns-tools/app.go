@@ -16,6 +16,8 @@ var OPT = Options{}
 const (
 	count                = 10               // ping次数
 	downloadTestDuration = 10 * time.Second // 下载测试时长
+	testSpeedURL         = "https://www.sohu.com"
+	testSpeedTimes       = 50 // 下载测试次数
 )
 
 // App struct
@@ -41,12 +43,12 @@ func (a *App) Greet(name string) string {
 
 // 检测网络上下行速率
 func (a *App) CheckSpeed() (downloadSpeed string, err error) {
-	url := "https://www.sohu.com"
+	url := testSpeedURL
 	duration := downloadTestDuration
 	totalSize := 0
 	totalDuration := 0.0
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < testSpeedTimes; i++ {
 		req := fasthttp.AcquireRequest()
 		req.SetRequestURI(url)
 
@@ -66,7 +68,7 @@ func (a *App) CheckSpeed() (downloadSpeed string, err error) {
 		totalDuration += endTime.Sub(startTime).Seconds()
 	}
 
-	downloadSpeed = fmt.Sprintf("%.5f Mb/s", float64(totalSize)/totalDuration/1024/1024)
+	downloadSpeed = fmt.Sprintf("%.2f Mb/s", float64(totalSize)/totalDuration/1024/1024)
 
 	return
 }
